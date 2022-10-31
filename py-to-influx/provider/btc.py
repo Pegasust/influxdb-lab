@@ -47,6 +47,8 @@ with open(DATA) as btc:
                 row = next(btc_stream, None)
                 time.sleep(0.05)
             exit_prog = True
+            print("End of program")
 
         if not exit_prog:
             time.sleep(5)
+
