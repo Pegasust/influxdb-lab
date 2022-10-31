@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+version: '3'
+services:
+  influxdb:
+    image: influxdb:2.4.0-alpine
+    env_file: influxdb.env
+    volumes:
+    - influxdb_vol:/var/lib/influxdb2
+    - ./influxdb-conf:/etc/influxdb2
+    ports:
+    - 8086:8086
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana:9.2.2
+    ports:
+    - 3000:3000
+    volumes:
+    - grafana-storage:/var/lib/grafana
+    - ./grafana-conf:/etc/grafana
+    restart: unless-stopped
+  # fake data provider
+  provider:
+    image: python:3.9.15-buster
+    volumes:
+    - ./provider:/usr/src/app
+    restart: unless-stopped
+    command: bash -c "/usr/src/app/install-pip.sh && python /usr/src/app/provider.py"
+    environment:
+      INFLUXDB_URL: http://influxdb:8086
+  btc-provider:
+    image: python:3.9.15-buster
+    volumes:
+    - ./provider:/usr/src/app
+    - ./data:/usr/src/app/data
+    restart: unless-stopped
+    command: bash -c "/usr/src/app/install-pip.sh && python /usr/src/app/btc.py"
+    environment:
+      INFLUXDB_URL: http://influxdb:8086
+      DATA: /usr/src/app/data/btc.csv
+volumes:
+  influxdb_vol:
+  grafana-storage:
